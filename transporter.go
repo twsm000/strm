@@ -7,10 +7,9 @@ type Transporter[T any] func() (StreamReceiver[T], StreamDeadline)
 // NewTransporter: returns a Transporter that send the cargo from a place to another.
 // An invalid cargo will return an transporter with a drained channel
 func NewTransporter[T any](cargo StreamReceiver[T], endPoint StreamDeadline) Transporter[T] {
-	endPoint = GetValidDeadline(endPoint)
-	if cargo == nil {
+	if cargo == nil || endPoint == nil {
 		return func() (StreamReceiver[T], StreamDeadline) {
-			return Drainer[T](), endPoint
+			return Drainer[T](), GetValidDeadline(endPoint)
 		}
 	}
 
