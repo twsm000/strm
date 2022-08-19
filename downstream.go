@@ -26,3 +26,9 @@ func Downstream[T any](receiver StreamReceiver[T], exit StreamDeadline) StreamRe
 		}
 	})
 }
+
+// DownstreamFrom: returns an valid receiver from a transporter to be consumed by a client
+func DownstreamFrom[T any](cargo Transporter[T]) StreamReceiver[T] {
+	pkg, delivered := OpenCargo(cargo)
+	return Downstream(pkg, delivered)
+}

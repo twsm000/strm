@@ -44,3 +44,26 @@ func TestDownstream(t *testing.T) {
 		}
 	}
 }
+
+func TestDownstreamFromWhenPassInvalidTransporter(t *testing.T) {
+	for range DownstreamFrom[int](nil) {
+		assert.FailNow(t, "for range block cannot be reached")
+	}
+}
+
+func TestDownstreamFromWhenPassValidTransporter(t *testing.T) {
+	const expected int = 10
+	quit := NewClosableStream()
+
+	cargo := func() (StreamReceiver[int], StreamDeadline) {
+		sender := make(chan int, 2)
+		sender <- expected
+		sender <- expected * 2
+		return sender, quit
+	}
+
+	for got := range DownstreamFrom(cargo) {
+		assert.Equal(t, expected, got)
+		close(quit)
+	}
+}
