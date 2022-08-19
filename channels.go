@@ -53,7 +53,15 @@ func SendTo[T any](sender StreamSender[T], value T, quit StreamDeadline) bool {
 		return false
 	case <-invalidSender:
 		return false
-	case sender <- value:
-		return true
+
+	default:
+		select {
+		case <-quit:
+			return false
+		case <-invalidSender:
+			return false
+		case sender <- value:
+			return true
+		}
 	}
 }
