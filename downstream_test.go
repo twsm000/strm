@@ -56,9 +56,10 @@ func TestDownstreamFromWhenPassValidTransporter(t *testing.T) {
 	quit := NewClosableStream()
 
 	cargo := func() (StreamReceiver[int], StreamDeadline) {
-		sender := make(chan int, 2)
-		sender <- expected
-		sender <- expected * 2
+		sender := make(chan int)
+		go func() {
+			sender <- expected
+		}()
 		return sender, quit
 	}
 
