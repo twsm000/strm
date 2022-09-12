@@ -12,16 +12,18 @@ func TestSplitJoin(t *testing.T) {
 	quit := NewClosableStream()
 	defer close(quit)
 
-	produce := func(sender StreamSender[int]) {
+	produce := func(sender StreamSender[int], quit StreamDeadline) {
 		for i := 0; i < totalSize; i++ {
-			sender <- i
+			if !SendTo(sender, i, quit) {
+				return
+			}
 		}
 	}
 	isEven := func(v int) bool {
 		return v%2 == 0
 	}
-	transfer := func(t Transporter[int]) Transporter[int] {
-		return FilterEnqueue(queueSize, t, isEven)
+	transfer := func(cargo Transporter[int]) Transporter[int] {
+		return FilterEnqueue(queueSize, cargo, isEven)
 	}
 
 	var count int

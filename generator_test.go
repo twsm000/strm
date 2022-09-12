@@ -11,14 +11,16 @@ func TestGenerate(t *testing.T) {
 	defer close(quit)
 
 	expected := []int{1, 2, 3, 4, 5}
-	generatedValues := Generate(quit, func(sender StreamSender[int]) {
+	producer := func(sender StreamSender[int], quit StreamDeadline) {
 		for _, v := range expected {
-			sender <- v
+			if !SendTo(sender, v, quit) {
+				return
+			}
 		}
-	})
+	}
 
 	got := []int{}
-	for v := range DownstreamFrom(generatedValues) {
+	for v := range DownstreamFrom(Generate(quit, producer)) {
 		got = append(got, v)
 	}
 
@@ -30,16 +32,18 @@ func TestGenerateEnqueue(t *testing.T) {
 	defer close(quit)
 
 	expected := []int{1, 2, 3, 4, 5}
-	generatedValues := GenerateEnqueue(5, quit, func(sender StreamSender[int]) {
+	producer := func(sender StreamSender[int], quit StreamDeadline) {
 		for loopCount := 1; loopCount <= 2; loopCount++ {
 			for _, v := range expected {
-				sender <- v
+				if !SendTo(sender, v, quit) {
+					return
+				}
 			}
 		}
-	})
+	}
 
 	got := []int{}
-	for v := range DownstreamFrom(generatedValues) {
+	for v := range DownstreamFrom(GenerateEnqueue(5, quit, producer)) {
 		got = append(got, v)
 	}
 
